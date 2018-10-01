@@ -278,6 +278,10 @@ add_library(libEGL SHARED
 target_link_libraries(libEGL PRIVATE angle::common angle::libANGLE libGLESv2)
 target_include_directories(libEGL PUBLIC "$<INSTALL_INTERFACE:include>")
 
+if(NOT MSVC)
+    target_compile_definitions(libGLESv2 PRIVATE -DGL_APICALL=__attribute__\(\(visibility\(\"default\"\)\)\))
+    target_compile_definitions(libEGL PRIVATE -DEGLAPI=__attribute__\(\(visibility\(\"default\"\)\)\))
+endif()
 
 SET_TARGET_PROPERTIES(libANGLE PROPERTIES PREFIX "")
 SET_TARGET_PROPERTIES(libGLESv2 PROPERTIES PREFIX "")
