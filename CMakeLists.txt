@@ -52,7 +52,7 @@ elseif(LINUX)
 elseif(APPLE)
     set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_win")
 endif()
-file(GLOB ANGLE_COMMON_SOURCES "src/common/*.h" "src/common/*.inl" "src/common/*.cpp" "src/common/third_party/base/*.h" src/common/third_party/base/anglebase/sha1.cc src/common/third_party/smhasher/src/*.cpp)
+file(GLOB ANGLE_COMMON_SOURCES "src/common/*.h" "src/common/*.inl" "src/common/*.cpp" "src/common/third_party/base/*.h" src/common/third_party/base/anglebase/sha1.cc "src/common/third_party/smhasher/src/*.cpp" "src/common/third_party/xxhash/*.c")
 list(FILTER ANGLE_COMMON_SOURCES EXCLUDE REGEX "_unittest|event_tracer|${ANGLE_COMMON_PLATFORM_FILTER}")
 add_library(angle_common STATIC ${ANGLE_COMMON_SOURCES})
 target_include_directories(angle_common PUBLIC src/common/third_party/base)
@@ -95,7 +95,7 @@ add_library(angle::preprocessor ALIAS angle_preprocessor)
 
 ##########
 # libANGLE
-
+# TODO: vulkan
 ## OpenGL Renderer
 if(WINDOWS_DESKTOP OR LINUX OR APPLE)
     if(WINDOWS_DESKTOP)
@@ -243,6 +243,11 @@ target_link_libraries(libANGLE PRIVATE
     angle::preprocessor
     ${LIBANGLE_RENDERER_PLATFORM}
 )
+if(CMAKE_CL_64 OR CMAKE_SYSTEM_PROCESSOR MATCHES 64)
+  target_compile_definitions(libANGLE PRIVATE -DANGLE_IS_64_BIT_CPU)
+else()
+  target_compile_definitions(libANGLE PRIVATE -DANGLE_IS_32_BIT_CPU)
+endif()
 target_include_directories(libANGLE PRIVATE "src/third_party/khronos")
 target_compile_definitions(libANGLE
     PRIVATE -DANGLE_ENABLE_NULL
@@ -277,6 +282,7 @@ add_library(libEGL SHARED
 )
 target_link_libraries(libEGL PRIVATE angle::common angle::libANGLE libGLESv2)
 target_include_directories(libEGL PUBLIC "$<INSTALL_INTERFACE:include>")
+target_compile_definitions(libEGL PRIVATE -DLIBEGL_IMPLEMENTATION)
 
 if(NOT MSVC)
     target_compile_definitions(libGLESv2 PRIVATE -DGL_APICALL=__attribute__\(\(visibility\(\"default\"\)\)\))
