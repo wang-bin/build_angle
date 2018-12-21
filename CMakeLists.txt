@@ -70,16 +70,21 @@ add_library(angle::image_util ALIAS angle_image_util)
 file(GLOB_RECURSE TRANSLATOR_SOURCES
     "src/compiler/translator/glslang.l"
     "src/compiler/translator/glslang.y"
-    "src/compiler/translator/*.h"
     "src/compiler/translator/*.cpp"
     "src/third_party/compiler/ArrayBoundsClamper.cpp"
 )
+if(NOT WIN32)
+    list(FILTER TRANSLATOR_SOURCES EXCLUDE REGEX "HLSL|hlsl")
+endif()
+list(FILTER TRANSLATOR_SOURCES EXCLUDE REGEX "Vulkan")
 add_library(angle_translator STATIC ${TRANSLATOR_SOURCES})
-target_compile_definitions(angle_translator PUBLIC
+target_compile_definitions(angle_translator PRIVATE
     -DANGLE_ENABLE_ESSL
     -DANGLE_ENABLE_GLSL
-    -DANGLE_ENABLE_HLSL
 )
+if(WIN32)
+    target_compile_definitions(angle_translator PRIVATE -DANGLE_ENABLE_HLSL)
+endif()
 target_link_libraries(angle_translator PRIVATE angle::common)
 add_library(angle::translator ALIAS angle_translator)
 
@@ -282,7 +287,7 @@ add_library(libEGL SHARED
 )
 target_link_libraries(libEGL PRIVATE angle::common angle::libANGLE libGLESv2)
 target_include_directories(libEGL PUBLIC "$<INSTALL_INTERFACE:include>")
-target_compile_definitions(libEGL PRIVATE -DLIBEGL_IMPLEMENTATION)
+target_compile_definitions(libEGL PRIVATE -DLIBEGL_IMPLEMENTATION -DEGL_EGL_PROTOTYPES -DEGL_EGLEXT_PROTOTYPES) # EGL_EGL_PROTOTYPES: function declarations with default visibility via EGLAPI
 
 if(NOT MSVC)
     target_compile_definitions(libGLESv2 PRIVATE -DGL_APICALL=__attribute__\(\(visibility\(\"default\"\)\)\))
