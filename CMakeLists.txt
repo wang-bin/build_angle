@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(angle CXX C)
 include(config.cmake)
 
+
 if(WIN32 AND NOT WINDOWS_STORE)
     set(WINDOWS_DESKTOP 1)
 else()
@@ -19,20 +20,22 @@ else()
     set(LINUX 0)
 endif()
 
-
-if(CMAKE_CL_64 OR CMAKE_SYSTEM_PROCESSOR MATCHES 64)
-  add_compile_options(-DANGLE_IS_64_BIT_CPU)
-else()
-  add_compile_options(-DANGLE_IS_32_BIT_CPU)
+option(USE_LOADER "build with EGL/GLESv2 loader" ON)
+option(USE_VULKAN "build with vulkan support" ON)
+if(WINDOWS_DESKTOP)
+  option(USE_D3D9 "build with d3d9 support" ON)
+  option(USE_GL "build with native opengl/es support via wgl" ON)
 endif()
 
-if(MSVC)
+
+if(MSVC AND NOT CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
     add_compile_options(-guard:cf)
     if(NOT CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
         add_compile_options(-d2guard4 -Wv:18)
     endif()
 elseif(NOT MSVC)
-    add_compile_options(-std=c++17 -fPIC)
+    add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-std=c++17>")
+    add_compile_options(-fPIC)
 endif()
 
 if (APPLE)
@@ -80,6 +83,12 @@ list(FILTER ANGLE_COMMON_SOURCES EXCLUDE REGEX "_unittest|event_tracer|${ANGLE_C
 add_library(angle_common STATIC ${ANGLE_COMMON_SOURCES})
 target_include_directories(angle_common PUBLIC src/common/third_party/base)
 add_library(angle::common ALIAS angle_common)
+if(CMAKE_CL_64 OR CMAKE_SYSTEM_PROCESSOR MATCHES 64)
+  target_compile_definitions(angle_common INTERFACE -DANGLE_IS_64_BIT_CPU)
+else()
+  target_compile_definitions(angle_common INTERFACE -DANGLE_IS_32_BIT_CPU)
+endif()
+
 
 ##########
 # angle::image_util
@@ -130,7 +139,6 @@ target_compile_definitions(angle_translator PRIVATE
 if(WIN32)
     target_compile_definitions(angle_translator PRIVATE -DANGLE_ENABLE_HLSL)
 endif()
-#ANGLE_ENABLE_VULKAN
 target_link_libraries(angle_translator PRIVATE angle::common)
 add_library(angle::translator ALIAS angle_translator)
 
@@ -146,9 +154,9 @@ add_library(angle::preprocessor ALIAS angle_preprocessor)
 
 ##########
 # libANGLE
-# TODO: vulkan
+
 ## OpenGL Renderer
-if(WINDOWS_DESKTOP OR LINUX OR APPLE)
+if(USE_GL AND WINDOWS_DESKTOP OR LINUX OR APPLE)
     if(WINDOWS_DESKTOP)
         set(ANGLE_RENDERER_OPENGL_PLATFORM 
             "src/libANGLE/renderer/gl/wgl/*.cpp"
@@ -206,12 +214,18 @@ if(WINDOWS_ANY)
     ## Win32/d3d9 D3D Renderer
     if(WINDOWS_DESKTOP)
         set(LIBANGLE_D3D_DESKTOP_SOURCES ${LIBANGLE_D3D_SOURCES})
-        list(FILTER LIBANGLE_D3D_DESKTOP_SOURCES INCLUDE REGEX "d3d9|win32|converged")
-        find_library(D3D9_LIB NAMES d3d9)
+        if(USE_D3D9)
+            list(FILTER LIBANGLE_D3D_DESKTOP_SOURCES INCLUDE REGEX "d3d9|win32|converged")
+        else()
+            list(FILTER LIBANGLE_D3D_DESKTOP_SOURCES INCLUDE REGEX "win32|converged")
+        endif()
         add_library(angle_renderer_win32 INTERFACE)
         target_sources(angle_renderer_win32 INTERFACE ${LIBANGLE_D3D_DESKTOP_SOURCES})
-        target_compile_definitions(angle_renderer_win32 INTERFACE -DANGLE_ENABLE_D3D9)
-        target_link_libraries(angle_renderer_win32 INTERFACE d3d9 user32 gdi32)#${D3D9_LIB})
+        if(USE_D3D9)
+            target_compile_definitions(angle_renderer_win32 INTERFACE -DANGLE_ENABLE_D3D9)
+            target_link_libraries(angle_renderer_win32 INTERFACE d3d9)
+        endif()
+        target_link_libraries(angle_renderer_win32 INTERFACE user32 gdi32)
         add_library(angle::renderer::win32 ALIAS angle_renderer_win32)
     endif()
 
@@ -271,8 +285,10 @@ elseif(WINDOWS_DESKTOP)
     set(LIBANGLE_RENDERER_PLATFORM
         angle::renderer::d3d
         angle::renderer::win32
-        angle::renderer::opengl
     )
+    if(USE_GL)
+        list(APPEND LIBANGLE_RENDERER_PLATFORM angle::renderer::opengl)
+    endif()
 else()
     set(LIBANGLE_RENDERER_PLATFORM )
 endif()
@@ -326,12 +342,13 @@ file(GLOB LIBEGL_SOURCES "src/libEGL/*.cpp" "src/libEGL/*.h")
 # "src/libEGL/libEGL.def": duplicate /export because EGLAPI is defined as dllexport
 add_library(libEGL SHARED
     ${LIBEGL_SOURCES}
-    #"src/libEGL/libEGL.rc"
+    #    "src/libEGL/libEGL.rc"
 )
 target_link_libraries(libEGL PRIVATE angle::common angle::libANGLE libGLESv2)
 target_include_directories(libEGL PUBLIC "$<INSTALL_INTERFACE:include>")
 target_compile_definitions(libEGL PRIVATE -DLIBEGL_IMPLEMENTATION -DEGL_EGL_PROTOTYPES=1 -DEGL_EGLEXT_PROTOTYPES) # EGL_EGL_PROTOTYPES: function declarations with default visibility via EGLAPI
 target_compile_definitions(libEGL PRIVATE -DANGLE_USE_EGL_LOADER -DANGLE_GLESV2_LIBRARY_NAME=\"libGLESv2\" -DANGLE_EGL_LIBRARY_NAME=\"libEGL\") # TODO: option?
+
 if(NOT MSVC)
     target_compile_definitions(libGLESv2 PRIVATE -DGL_APICALL=__attribute__\(\(visibility\(\"default\"\)\)\))
     target_compile_definitions(libEGL PRIVATE -DEGLAPI=__attribute__\(\(visibility\(\"default\"\)\)\))
