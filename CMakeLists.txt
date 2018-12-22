@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(angle CXX)
+project(angle CXX C)
 include(config.cmake)
 
 if(WIN32 AND NOT WINDOWS_STORE)
@@ -19,8 +19,11 @@ else()
     set(LINUX 0)
 endif()
 
-if(MSVC AND NOT CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
-    add_compile_options(-d2guard4 -Wv:18 -guard:cf)
+if(MSVC)
+    add_compile_options(-guard:cf)
+    if(NOT CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
+        add_compile_options(-d2guard4 -Wv:18)
+    endif()
 elseif(NOT MSVC)
     add_compile_options(-std=c++17 -fPIC)
 endif()
@@ -40,7 +43,20 @@ add_definitions(
     -DANGLE_ENABLE_DEBUG_ANNOTATIONS
 )
 
-configure_file(src/commit.h include/id/commit.h COPYONLY)
+execute_process(
+  COMMAND ${CMAKE_SOURCE_DIR}/src/commit_id.py check ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE IS_GIT_REPO
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(IS_GIT_REPO STREQUAL 1)
+    execute_process(
+      COMMAND ${CMAKE_SOURCE_DIR}/src/commit_id.py gen ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/include/id/commit.h
+      OUTPUT_VARIABLE IS_GIT_REPO
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+else()
+    configure_file(src/commit.h include/id/commit.h COPYONLY)
+endif()
 include_directories(include src ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 ##########
@@ -52,7 +68,7 @@ elseif(LINUX)
 elseif(APPLE)
     set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_win")
 endif()
-file(GLOB ANGLE_COMMON_SOURCES "src/common/*.h" "src/common/*.inl" "src/common/*.cpp" "src/common/third_party/base/*.h" src/common/third_party/base/anglebase/sha1.cc "src/common/third_party/smhasher/src/*.cpp" "src/common/third_party/xxhash/*.c")
+file(GLOB ANGLE_COMMON_SOURCES "src/common/*.h" "src/common/*.inl" "src/common/*.cpp" "src/common/third_party/base/anglebase/*.h" "src/common/third_party/base/anglebase/*.cc" "src/common/third_party/base/anglebase/containers/*.h" "src/common/third_party/base/anglebase/numerics/*.h" "src/common/third_party/base/anglebase/numerics/*.cc" "src/common/third_party/xxhash/*.h" "src/common/third_party/xxhash/*.c" "src/common/third_party/smhasher/src/*.h" "src/common/third_party/smhasher/src/*.cpp")
 list(FILTER ANGLE_COMMON_SOURCES EXCLUDE REGEX "_unittest|event_tracer|${ANGLE_COMMON_PLATFORM_FILTER}")
 add_library(angle_common STATIC ${ANGLE_COMMON_SOURCES})
 target_include_directories(angle_common PUBLIC src/common/third_party/base)
@@ -65,6 +81,27 @@ add_library(angle_image_util STATIC ${ANGLE_IMAGE_UTIL_SOURCES})
 target_link_libraries(angle_image_util PRIVATE angle::common)
 add_library(angle::image_util ALIAS angle_image_util)
 
+set(ANGLE_GPU_INFO_UTIL_SOURCES src/gpu_info_util/SystemInfo.cpp)
+if(APPLE)
+  list(APPEND ANGLE_GPU_INFO_UTIL_SOURCES src/gpu_info_util/SystemInfo_mac.mm)
+elseif(WIN32)
+  list(APPEND ANGLE_GPU_INFO_UTIL_SOURCES src/gpu_info_util/SystemInfo_win.cpp)
+elseif(ANDROID)
+  list(APPEND ANGLE_GPU_INFO_UTIL_SOURCES src/gpu_info_util/SystemInfo_android.cpp)
+else()
+  list(APPEND ANGLE_GPU_INFO_UTIL_SOURCES src/gpu_info_util/SystemInfo_linux.cpp)
+endif()
+add_library(angle_gpu_info_util STATIC ${ANGLE_GPU_INFO_UTIL_SOURCES})
+target_link_libraries(angle_gpu_info_util PRIVATE angle::common)
+add_library(angle::gpu_info_util ALIAS angle_gpu_info_util)
+if(WIN32)
+  if(WINDOWS_DESKTOP)
+    set_property(SOURCE src/gpu_info_util/SystemInfo_win.cpp APPEND PROPERTY COMPILE_FLAGS "-DGPU_INFO_USE_SETUPAPI") # COMPILE_OPTIONS/INCLUDE_DIRECTORIES does not work
+    target_link_libraries(angle_gpu_info_util PRIVATE setupapi)
+  else()
+    set_property(SOURCE src/gpu_info_util/SystemInfo_win.cpp APPEND PROPERTY COMPILE_FLAGS "-DGPU_INFO_USE_DXGI") # COMPILE_OPTIONS/INCLUDE_DIRECTORIES does not work
+  endif()
+endif()
 ##########
 # angle::translator
 file(GLOB_RECURSE TRANSLATOR_SOURCES
@@ -117,7 +154,6 @@ if(WINDOWS_DESKTOP OR LINUX OR APPLE)
             "src/libANGLE/renderer/gl/cgl/*.cpp"
             "src/libANGLE/renderer/gl/cgl/*.inl"
             "src/libANGLE/renderer/gl/cgl/*.h"
-            "gpu_info_util/SystemInfo_mac.mm"
         )
     elseif(LINUX)
         set(ANGLE_RENDERER_OPENGL_PLATFORM 
@@ -163,7 +199,7 @@ if(WINDOWS_ANY)
     ## Win32/d3d9 D3D Renderer
     if(WINDOWS_DESKTOP)
         set(LIBANGLE_D3D_DESKTOP_SOURCES ${LIBANGLE_D3D_SOURCES})
-        list(FILTER LIBANGLE_D3D_DESKTOP_SOURCES INCLUDE REGEX "d3d9|win32")
+        list(FILTER LIBANGLE_D3D_DESKTOP_SOURCES INCLUDE REGEX "d3d9|win32|converged")
         find_library(D3D9_LIB NAMES d3d9)
         add_library(angle_renderer_win32 INTERFACE)
         target_sources(angle_renderer_win32 INTERFACE ${LIBANGLE_D3D_DESKTOP_SOURCES})
@@ -173,7 +209,7 @@ if(WINDOWS_ANY)
     endif()
 
     ## D3D11 Base renderer
-    list(FILTER LIBANGLE_D3D_SOURCES EXCLUDE REGEX "winrt|d3d9|win32")
+    list(FILTER LIBANGLE_D3D_SOURCES EXCLUDE REGEX "winrt|d3d9|win32") #|converged
     find_library(DXGUID_LIB NAMES dxguid)
     find_library(D3D11_LIB NAMES d3d11)
     add_library(angle_renderer_d3d INTERFACE)
@@ -245,6 +281,7 @@ endif()
 add_library(libANGLE STATIC ${LIBANGLE_SOURCES})
 target_link_libraries(libANGLE PRIVATE
     angle::common
+    angle::gpu_info_util
     angle::image_util
     angle::translator
     angle::preprocessor
@@ -266,7 +303,7 @@ add_library(angle::libANGLE ALIAS libANGLE)
 
 ##########
 # libGLESv2
-file(GLOB LIBGLESV2_SOURCES "src/libGLESv2/*.h" "src/libGLESv2/*.cpp" "src/libGLESv2/libGLESv2.def")
+file(GLOB LIBGLESV2_SOURCES "src/libGLESv2/*.h" "src/libGLESv2/*.cpp" "src/libGLESv2/libGLESv2_autogen.def")
 add_library(libGLESv2 SHARED ${LIBGLESV2_SOURCES})
 target_link_libraries(libGLESv2 PRIVATE angle::common angle::libANGLE)
 target_compile_definitions(libGLESv2
@@ -277,6 +314,7 @@ target_compile_definitions(libGLESv2
         # static only
         #        -DGL_APICALL=
         #        -DEGLAPI=
+        #        -DGL_API=
 )
 target_include_directories(libGLESv2 PUBLIC "$<INSTALL_INTERFACE:include>")
 
