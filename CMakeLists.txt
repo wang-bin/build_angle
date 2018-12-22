@@ -46,7 +46,7 @@ include_directories(include src ${CMAKE_CURRENT_BINARY_DIR}/include)
 ##########
 # angle::common
 if(WINDOWS_ANY)
-    set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_mac")
+    set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_mac|_posix")
 elseif(LINUX)
     set(ANGLE_COMMON_PLATFORM_FILTER "_win|_mac")
 elseif(APPLE)
@@ -70,6 +70,7 @@ add_library(angle::image_util ALIAS angle_image_util)
 file(GLOB_RECURSE TRANSLATOR_SOURCES
     "src/compiler/translator/glslang.l"
     "src/compiler/translator/glslang.y"
+    #    "src/compiler/translator/*.h"
     "src/compiler/translator/*.cpp"
     "src/third_party/compiler/ArrayBoundsClamper.cpp"
 )
@@ -85,6 +86,7 @@ target_compile_definitions(angle_translator PRIVATE
 if(WIN32)
     target_compile_definitions(angle_translator PRIVATE -DANGLE_ENABLE_HLSL)
 endif()
+#ANGLE_ENABLE_VULKAN
 target_link_libraries(angle_translator PRIVATE angle::common)
 add_library(angle::translator ALIAS angle_translator)
 
@@ -271,6 +273,7 @@ target_compile_definitions(libGLESv2
     PRIVATE -DLIBGLESV2_IMPLEMENTATION
     PUBLIC
         -DGL_GLEXT_PROTOTYPES
+        -DGL_GLES_PROTOTYPES=1
         # static only
         #        -DGL_APICALL=
         #        -DEGLAPI=
@@ -279,19 +282,21 @@ target_include_directories(libGLESv2 PUBLIC "$<INSTALL_INTERFACE:include>")
 
 ##########
 # libEGL
+file(GLOB LIBEGL_SOURCES "src/libEGL/*.cpp" "src/libEGL/*.h")
+# "src/libEGL/libEGL.def": duplicate /export because EGLAPI is defined as dllexport
 add_library(libEGL SHARED
-    "src/libEGL/libEGL.def"
-    "src/libEGL/libEGL.cpp"
-    #    "src/libEGL/libEGL.rc"
-    "src/libEGL/resource.h"
+    ${LIBEGL_SOURCES}
+    #"src/libEGL/libEGL.rc"
 )
 target_link_libraries(libEGL PRIVATE angle::common angle::libANGLE libGLESv2)
 target_include_directories(libEGL PUBLIC "$<INSTALL_INTERFACE:include>")
-target_compile_definitions(libEGL PRIVATE -DLIBEGL_IMPLEMENTATION -DEGL_EGL_PROTOTYPES -DEGL_EGLEXT_PROTOTYPES) # EGL_EGL_PROTOTYPES: function declarations with default visibility via EGLAPI
-
+target_compile_definitions(libEGL PRIVATE -DLIBEGL_IMPLEMENTATION -DEGL_EGL_PROTOTYPES=1 -DEGL_EGLEXT_PROTOTYPES) # EGL_EGL_PROTOTYPES: function declarations with default visibility via EGLAPI
+target_compile_definitions(libEGL PRIVATE -DANGLE_USE_EGL_LOADER -DANGLE_GLESV2_LIBRARY_NAME=\"libGLESv2\" -DANGLE_EGL_LIBRARY_NAME=\"libEGL\") # TODO: option?
 if(NOT MSVC)
     target_compile_definitions(libGLESv2 PRIVATE -DGL_APICALL=__attribute__\(\(visibility\(\"default\"\)\)\))
     target_compile_definitions(libEGL PRIVATE -DEGLAPI=__attribute__\(\(visibility\(\"default\"\)\)\))
+else()
+    target_compile_definitions(libEGL PRIVATE -DEGLAPI=__declspec\(dllexport\))
 endif()
 
 SET_TARGET_PROPERTIES(libANGLE PROPERTIES PREFIX "")
