@@ -19,6 +19,13 @@ else()
     set(LINUX 0)
 endif()
 
+
+if(CMAKE_CL_64 OR CMAKE_SYSTEM_PROCESSOR MATCHES 64)
+  add_compile_options(-DANGLE_IS_64_BIT_CPU)
+else()
+  add_compile_options(-DANGLE_IS_32_BIT_CPU)
+endif()
+
 if(MSVC)
     add_compile_options(-guard:cf)
     if(NOT CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
@@ -107,7 +114,7 @@ endif()
 file(GLOB_RECURSE TRANSLATOR_SOURCES
     "src/compiler/translator/glslang.l"
     "src/compiler/translator/glslang.y"
-    #    "src/compiler/translator/*.h"
+    "src/compiler/translator/*.h"
     "src/compiler/translator/*.cpp"
     "src/third_party/compiler/ArrayBoundsClamper.cpp"
 )
@@ -287,11 +294,6 @@ target_link_libraries(libANGLE PRIVATE
     angle::preprocessor
     ${LIBANGLE_RENDERER_PLATFORM}
 )
-if(CMAKE_CL_64 OR CMAKE_SYSTEM_PROCESSOR MATCHES 64)
-  target_compile_definitions(libANGLE PRIVATE -DANGLE_IS_64_BIT_CPU)
-else()
-  target_compile_definitions(libANGLE PRIVATE -DANGLE_IS_32_BIT_CPU)
-endif()
 target_include_directories(libANGLE PRIVATE "src/third_party/khronos")
 target_compile_definitions(libANGLE
     PRIVATE -DANGLE_ENABLE_NULL
