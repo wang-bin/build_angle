@@ -19,15 +19,21 @@ endif()
 if(MSVC)
     link_libraries(-opt:ref)
     if(CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
-        add_compile_options(-GR- -Xclang -Oz)
-        #add_compile_options(-flto)
+        add_compile_options(-GR-)
+        set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -guard:cf") # optional, added by compile_option
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -guard:cf") # optional, added by compile_option
     else()
         set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -guard:cf -LTCG")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -guard:cf -LTCG")
     endif()
 else()
     add_compile_options(-fno-rtti -fno-exceptions)
 endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
-    #add_compile_options(-flto=thin) # lld-link: error: lto.tmp: undefined symbol: ldexpf
+    add_compile_options(-Xclang -Oz)
+    add_compile_options(-flto=thin) # lld-link: error: lto.tmp: undefined symbol: ldexpf
 endif()
-
+if(APPLE)
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -dead_strip")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -dead_strip")
+endif()
