@@ -2,40 +2,11 @@ cmake_minimum_required(VERSION 3.8)
 project(angle CXX C)
 include(config.cmake)
 
-
-if(WIN32 AND NOT WINDOWS_STORE)
-    set(WINDOWS_DESKTOP 1)
-else()
-    set(WINDOWS_DESKTOP 0)
-endif()
-if (WINDOWS_DESKTOP OR WINDOWS_STORE)
-    set(WINDOWS_ANY 1)
-else()
-    set(WINDOWS_ANY 0)
-endif()
-
-if(UNIX AND NOT APPLE)
-    set(LINUX 1)
-else()
-    set(LINUX 0)
-endif()
-
 option(USE_LOADER "build with EGL/GLESv2 loader" ON)
 option(USE_VULKAN "build with vulkan support" ON)
 if(WINDOWS_DESKTOP)
   option(USE_D3D9 "build with d3d9 support" ON)
   option(USE_GL "build with native opengl/es support via wgl" ON)
-endif()
-
-
-if(MSVC AND NOT CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
-    add_compile_options(-guard:cf)
-    if(NOT CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
-        add_compile_options(-d2guard4 -Wv:18)
-    endif()
-elseif(NOT MSVC)
-    add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-std=c++17>")
-    add_compile_options(-fPIC)
 endif()
 
 if (APPLE)
@@ -53,6 +24,7 @@ add_definitions(
     -DANGLE_ENABLE_DEBUG_ANNOTATIONS
 )
 
+configure_file(src/commit.h include/id/commit.h COPYONLY)
 execute_process(
   COMMAND ${CMAKE_SOURCE_DIR}/src/commit_id.py check ${CMAKE_SOURCE_DIR}
   OUTPUT_VARIABLE IS_GIT_REPO
@@ -64,8 +36,6 @@ if(IS_GIT_REPO STREQUAL 1)
       OUTPUT_VARIABLE IS_GIT_REPO
       OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-else()
-    configure_file(src/commit.h include/id/commit.h COPYONLY)
 endif()
 include_directories(include src ${CMAKE_CURRENT_BINARY_DIR}/include)
 
@@ -87,6 +57,9 @@ if(CMAKE_CL_64 OR CMAKE_SYSTEM_PROCESSOR MATCHES 64)
   target_compile_definitions(angle_common INTERFACE -DANGLE_IS_64_BIT_CPU)
 else()
   target_compile_definitions(angle_common INTERFACE -DANGLE_IS_32_BIT_CPU)
+  if(MSVC AND CMAKE_SYSTEM_PROCESSOR MATCHES 86)
+    target_compile_options(angle_common INTERFACE -arch:SSE2) # clang-cl, loadimage.cpp
+  endif()
 endif()
 
 
