@@ -1,0 +1,49 @@
+From 185668d1d24d01d60627f31593c2069403b2eb10 Mon Sep 17 00:00:00 2001
+From: wang-bin <wbsecg1@gmail.com>
+Date: Fri, 4 May 2018 12:00:44 +0800
+Subject: [PATCH 1/3] check d3d11 texture bind flags for eglstream
+
+---
+ extensions/EGL_ANGLE_stream_producer_d3d_texture.txt         | 4 +++-
+ src/libANGLE/renderer/d3d/d3d11/StreamProducerD3DTexture.cpp | 3 +++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/extensions/EGL_ANGLE_stream_producer_d3d_texture.txt b/extensions/EGL_ANGLE_stream_producer_d3d_texture.txt
+index 67581b418..3cc3faf1e 100644
+--- a/extensions/EGL_ANGLE_stream_producer_d3d_texture.txt
++++ b/extensions/EGL_ANGLE_stream_producer_d3d_texture.txt
+@@ -131,7 +131,7 @@ Add a section preceding "3.9.3 Posting Semantics" in the EGL specification:
+     insertion is successful and will release the texture object when a new frame
+     is inserted or when the stream is destroyed.
+ 
+-    On failure, eglStreamInsertD3DTexture returns EGL_FALSE and generates an
++    On failure, eglStreamPostD3DTextureANGLE returns EGL_FALSE and generates an
+     error.
+ 
+         - EGL_BAD_STATE is generated if <stream> is not in the state
+@@ -147,6 +147,8 @@ Add a section preceding "3.9.3 Posting Semantics" in the EGL specification:
+           EGL_D3D_TEXTURE_SUBRESOURCE_ID_ANGLE is not a valid subresource id for
+           the texture.
+ 
++        - EGL_BAD_PARAMETER is generated if <texture> is not created with D3D11_BIND_SHADER_RESOURCE.
++
+         - EGL_BAD_STREAM_KHR is generated if <stream> is not a valid EGLStream.
+ 
+         - EGL_BAD_ATTRIBUTE is generated if an attribute other than
+diff --git a/src/libANGLE/renderer/d3d/d3d11/StreamProducerD3DTexture.cpp b/src/libANGLE/renderer/d3d/d3d11/StreamProducerD3DTexture.cpp
+index 24fa9ff2c..561f009a0 100644
+--- a/src/libANGLE/renderer/d3d/d3d11/StreamProducerD3DTexture.cpp
++++ b/src/libANGLE/renderer/d3d/d3d11/StreamProducerD3DTexture.cpp
+@@ -33,6 +33,9 @@ egl::Error GetGLDescFromTex(ID3D11Texture2D *const tex,
+     if (desc.Width < 1 || desc.Height < 1)
+         return egl::EglBadParameter() << "Width or height < 1";
+ 
++    if (!(desc.BindFlags & D3D11_BIND_SHADER_RESOURCE))
++        return egl::EglBadParameter() << "Texture is not created with D3D11_BIND_SHADER_RESOURCE flag";
++
+     out->width     = desc.Width;
+     out->height    = desc.Height;
+     out->mipLevels = 0;
+-- 
+2.19.2
+

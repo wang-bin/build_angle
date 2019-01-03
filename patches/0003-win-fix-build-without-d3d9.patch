@@ -1,0 +1,26 @@
+From c2263e4ccf5becc17bdc2f89ac114a8182c8eedd Mon Sep 17 00:00:00 2001
+From: wang-bin <wbsecg1@gmail.com>
+Date: Sun, 23 Dec 2018 20:09:15 +0800
+Subject: [PATCH 3/3] win: fix build without d3d9
+
+---
+ src/libANGLE/renderer/d3d/RendererD3D.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/libANGLE/renderer/d3d/RendererD3D.cpp b/src/libANGLE/renderer/d3d/RendererD3D.cpp
+index 2a8d0221b..36f1f253c 100644
+--- a/src/libANGLE/renderer/d3d/RendererD3D.cpp
++++ b/src/libANGLE/renderer/d3d/RendererD3D.cpp
+@@ -229,7 +229,9 @@ GLenum DefaultGLErrorCode(HRESULT hr)
+ {
+     switch (hr)
+     {
++#ifdef ANGLE_ENABLE_D3D9
+         case D3DERR_OUTOFVIDEOMEMORY:
++#endif
+         case E_OUTOFMEMORY:
+             return GL_OUT_OF_MEMORY;
+         default:
+-- 
+2.19.2
+
