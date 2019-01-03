@@ -1,0 +1,77 @@
+version: 2
+
+custom-steps:
+  - &make-sdk
+    run:
+      name: Make SDK
+      command: |
+        ls -lh build/${TARGET_OS}*
+        [ -f build/${TARGET_OS}/cmake_install.cmake ] && cmake -P build/${TARGET_OS}/cmake_install.cmake
+        [ -f build/${TARGET_OS}-x86/cmake_install.cmake ] && cmake -P build/${TARGET_OS}-x86/cmake_install.cmake
+        [ -f build/${TARGET_OS}-x64/cmake_install.cmake ] && cmake -P build/${TARGET_OS}-x64/cmake_install.cmake
+        tar Jcvf /tmp/angle-${TARGET_OS}.tar.xz angle-*
+  - &install-dev-tools
+    run:
+      name: install dev tools
+      command: |
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key |apt-key add -
+        apt update
+        apt install -y software-properties-common # for add-apt-repository, ubuntu-tooolchain-r-test is required by trusty
+        apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main"
+        apt install -y cmake ninja-build p7zip-full clang-8 lld-8 clang-tools-8 # clang-tools: clang-cl
+  - &get-winsysroot
+    run:
+      name: Install windows sdk and vcrt
+      command: |
+        wget https://sourceforge.net/projects/avbuild/files/dep/msvcrt-dev.7z/download -O msvcrt-dev.7z
+        7z x msvcrt-dev.7z -o/tmp &>/dev/null
+        wget https://sourceforge.net/projects/avbuild/files/dep/winsdk.7z/download -O winsdk.7z
+        7z x winsdk.7z -o/tmp &>/dev/null
+        ${WindowsSdkDir}/lowercase.sh
+        ${WindowsSdkDir}/mkvfs.sh
+jobs:
+  build_win:
+    docker:
+      - image: buildpack-deps:bionic #ubuntu:18.04 install git etc.
+    environment:
+      TARGET_OS: windows-desktop
+      VCDIR: /tmp/msvcrt-dev
+      WindowsSdkDir: /tmp/winsdk
+    steps:
+      - checkout
+      - run:
+          name: Get ANGLE and build tools
+          command: |
+            git clone https://github.com/google/angle.git
+            git clone https://github.com/wang-bin/cmake-tools.git
+            cd angle
+            cp ../CMakeLists.txt ../*.cmake .
+            find ../patches/ -name "*.patch" -exec sh -c 'patch -p1 < $0' {} \;
+      - *install-dev-tools
+      - *get-winsysroot
+      - run:
+          name: Configure for win32
+          command: |
+            export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
+            cmake -DCMAKE_SYSTEM_PROCESSOR=x86 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x86 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$PWD/angle-x86 -Hangle
+      - run:
+          name: Build for win32
+          command: |
+            cmake --build build/${TARGET_OS}-x86
+      - run:
+          name: Configure for win64
+          command: |
+            export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
+            cmake -DCMAKE_SYSTEM_PROCESSOR=x64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$PWD/angle-x64 -Hangle
+      - run:
+          name: Build for win64
+          command: |
+            cmake --build build/${TARGET_OS}-x64
+      - *make-sdk
+      - store_artifacts:
+          path: /tmp/angle-windows-desktop.tar.xz
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_win
