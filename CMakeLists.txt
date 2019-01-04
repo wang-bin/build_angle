@@ -237,9 +237,9 @@ file(GLOB LIBANGLE_SOURCES
     "src/libANGLE/renderer/*.inl"
     "src/libANGLE/renderer/*.h"
 
-    "src/libANGLE/renderer/null/*.cpp"
-    "src/libANGLE/renderer/null/*.inl"
-    "src/libANGLE/renderer/null/*.h"
+    #"src/libANGLE/renderer/null/*.cpp"
+    #"src/libANGLE/renderer/null/*.inl"
+    #"src/libANGLE/renderer/null/*.h"
 
     ${LIBANGLE_SOURCES_PLATFORM}
 )
@@ -285,7 +285,7 @@ target_link_libraries(libANGLE PRIVATE
 )
 target_include_directories(libANGLE PRIVATE "src/third_party/khronos")
 target_compile_definitions(libANGLE
-    PRIVATE -DANGLE_ENABLE_NULL
+    #PRIVATE -DANGLE_ENABLE_NULL
     PUBLIC 
         -DLIBANGLE_IMPLEMENTATION 
         ${LIBANGLE_RENDERER_COMPILEDEF}
@@ -311,7 +311,7 @@ target_include_directories(libGLESv2 PUBLIC "$<INSTALL_INTERFACE:include>")
 
 ##########
 # libEGL
-file(GLOB LIBEGL_SOURCES "src/libEGL/*.cpp" "src/libEGL/*.h")
+file(GLOB LIBEGL_SOURCES "src/libEGL/*.cpp" "src/libEGL/*.h" "src/libEGL/libEGL.def")
 # "src/libEGL/libEGL.def": duplicate /export because EGLAPI is defined as dllexport
 add_library(libEGL SHARED
     ${LIBEGL_SOURCES}
@@ -326,7 +326,8 @@ if(NOT MSVC)
     target_compile_definitions(libGLESv2 PRIVATE -DGL_APICALL=__attribute__\(\(visibility\(\"default\"\)\)\))
     target_compile_definitions(libEGL PRIVATE -DEGLAPI=__attribute__\(\(visibility\(\"default\"\)\)\))
 else()
-    target_compile_definitions(libEGL PRIVATE -DEGLAPI=__declspec\(dllexport\))
+    target_compile_definitions(libGLESv2 PRIVATE -DGL_API= -DGL_APICALL=)#__declspec\(dllexport\): exports_eglXXX@?
+    target_compile_definitions(libEGL PRIVATE -DEGLAPI=)#__declspec\(dllexport\): exports_eglXXX@?
 endif()
 
 SET_TARGET_PROPERTIES(libANGLE PROPERTIES PREFIX "")

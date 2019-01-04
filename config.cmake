@@ -52,7 +52,9 @@ endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
     add_compile_options(-Xclang -Oz)
-    add_compile_options(-flto=thin) # lld-link: error: lto.tmp: undefined symbol: ldexpf
+    if(NOT MSVC) # clang-cl lto produces larger binary
+        add_compile_options(-flto=thin) # lld-link: error: lto.tmp: undefined symbol: ldexpf
+    endif()
 endif()
 if(APPLE)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -dead_strip")
