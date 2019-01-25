@@ -18,7 +18,7 @@ custom-steps:
         apt update
         apt install -y software-properties-common # for add-apt-repository, ubuntu-tooolchain-r-test is required by trusty
         apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main"
-        apt install -y cmake ninja-build p7zip-full clang-8 lld-8 clang-tools-8 # clang-tools: clang-cl
+        apt install -y cmake ninja-build p7zip-full clang-9 lld-9 clang-tools-9 # clang-tools: clang-cl
   - &get-winsysroot
     run:
       name: Install windows sdk and vcrt
@@ -45,6 +45,7 @@ jobs:
             git clone https://github.com/google/angle.git
             git clone https://github.com/wang-bin/cmake-tools.git
             cd angle
+            git reset HEAD~3 # use official commit id
             cp ../CMakeLists.txt ../*.cmake .
             find ../patches/ -name "*.patch" -exec sh -c 'patch -p1 < $0' {} \;
       - *install-dev-tools
