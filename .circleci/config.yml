@@ -18,7 +18,8 @@ custom-steps:
         apt update
         apt install -y software-properties-common # for add-apt-repository, ubuntu-tooolchain-r-test is required by trusty
         apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main"
-        apt install -y cmake ninja-build p7zip-full clang-9 lld-9 clang-tools-9 # clang-tools: clang-cl
+        apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-8 main"
+        apt install -y cmake ninja-build p7zip-full clang-${LLVM_VER:-8} lld-${LLVM_VER:-8} clang-tools-${LLVM_VER:-8} # clang-tools: clang-cl
   - &get-winsysroot
     run:
       name: Install windows sdk and vcrt
@@ -45,7 +46,6 @@ jobs:
             git clone https://github.com/google/angle.git
             git clone https://github.com/wang-bin/cmake-tools.git
             cd angle
-            git reset HEAD~3 # use official commit id
             cp ../CMakeLists.txt ../*.cmake .
             find ../patches/ -name "*.patch" -exec sh -c 'patch -p1 < $0' {} \;
       - *install-dev-tools
@@ -54,7 +54,7 @@ jobs:
           name: Configure for win32
           command: |
             export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
-            cmake -DCMAKE_SYSTEM_PROCESSOR=x86 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x86 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$PWD/angle-x86 -Hangle
+            cmake -DCMAKE_SYSTEM_PROCESSOR=x86 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x86 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x86 -Hangle
       - run:
           name: Build for win32
           command: |
@@ -63,7 +63,7 @@ jobs:
           name: Configure for win64
           command: |
             export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
-            cmake -DCMAKE_SYSTEM_PROCESSOR=x64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x64 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$PWD/angle-x64 -Hangle
+            cmake -DCMAKE_SYSTEM_PROCESSOR=x64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x64 -Hangle
       - run:
           name: Build for win64
           command: |
