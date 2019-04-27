@@ -15,16 +15,6 @@ if(WIN32 AND NOT WINDOWS_STORE)
 else()
     set(WINDOWS_DESKTOP 0)
 endif()
-if(WIN32 AND NOT WINDOWS_STORE)
-    set(WINDOWS_DESKTOP 1)
-else()
-    set(WINDOWS_DESKTOP 0)
-endif()
-if (WINDOWS_DESKTOP OR WINDOWS_STORE)
-    set(WINDOWS_ANY 1)
-else()
-    set(WINDOWS_ANY 0)
-endif()
 
 if(UNIX AND NOT APPLE)
     set(LINUX 1)
@@ -51,10 +41,7 @@ else()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
-    add_compile_options(-Xclang -Oz)
-    if(NOT MSVC) # clang-cl lto produces larger binary
-        add_compile_options(-flto=thin) # lld-link: error: lto.tmp: undefined symbol: ldexpf
-    endif()
+    add_compile_options(-flto=thin) # lld-link: error: lto.tmp: undefined symbol: ldexpf
 endif()
 if(APPLE)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -dead_strip")

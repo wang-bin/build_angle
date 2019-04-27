@@ -41,7 +41,7 @@ include_directories(include src ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 ##########
 # angle::common
-if(WINDOWS_ANY)
+if(WIN32)
     set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_mac|_posix|android_")
 elseif(LINUX)
     set(ANGLE_COMMON_PLATFORM_FILTER "_win|_mac")
@@ -166,7 +166,7 @@ if(USE_GL AND WINDOWS_DESKTOP OR LINUX OR APPLE)
 endif()
 
 # D3D Renderers
-if(WINDOWS_ANY)
+if(WIN32)
     ## All D3D Sources
     file(GLOB_RECURSE LIBANGLE_D3D_SOURCES
         "src/libANGLE/renderer/d3d/*.cpp"
@@ -217,7 +217,7 @@ if(WINDOWS_ANY)
 endif()
 
 ## Core libANGLE library
-if(WINDOWS_ANY)
+if(WIN32)
     set(LIBANGLE_SOURCES_PLATFORM
         "src/third_party/systeminfo/SystemInfo.cpp"
     )
@@ -319,6 +319,7 @@ add_library(libEGL SHARED
 )
 target_link_libraries(libEGL PRIVATE angle::common angle::libANGLE libGLESv2)
 target_include_directories(libEGL PUBLIC "$<INSTALL_INTERFACE:include>")
+target_include_directories(libEGL PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>")
 target_compile_definitions(libEGL PRIVATE -DLIBEGL_IMPLEMENTATION -DEGL_EGL_PROTOTYPES=1 -DEGL_EGLEXT_PROTOTYPES) # EGL_EGL_PROTOTYPES: function declarations with default visibility via EGLAPI
 target_compile_definitions(libEGL PRIVATE -DANGLE_USE_EGL_LOADER -DANGLE_GLESV2_LIBRARY_NAME=\"libGLESv2\" -DANGLE_EGL_LIBRARY_NAME=\"libEGL\") # TODO: option?
 
