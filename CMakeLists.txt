@@ -42,7 +42,7 @@ include_directories(include src ${CMAKE_CURRENT_BINARY_DIR}/include)
 ##########
 # angle::common
 if(WINDOWS_ANY)
-    set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_mac|_posix")
+    set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_mac|_posix|android_")
 elseif(LINUX)
     set(ANGLE_COMMON_PLATFORM_FILTER "_win|_mac")
 elseif(APPLE)

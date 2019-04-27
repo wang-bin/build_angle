@@ -1,4 +1,4 @@
-From 4f5135f76d9330bf3ab5e47f2026e1b0ad5f1fef Mon Sep 17 00:00:00 2001
+From a66bcf83dab5ba674674596c881a733782a17732 Mon Sep 17 00:00:00 2001
 From: wang-bin <wbsecg1@gmail.com>
 Date: Sat, 22 Dec 2018 10:27:26 +0800
 Subject: [PATCH 2/3] win: fix build error if target < win8
@@ -10,7 +10,7 @@ Subject: [PATCH 2/3] win: fix build error if target < win8
  3 files changed, 20 insertions(+), 2 deletions(-)
 
 diff --git a/src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp b/src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp
-index 1a851da93..915d1c739 100644
+index 33dfa6b03..849887db2 100644
 --- a/src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp
 +++ b/src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp
 @@ -6,6 +6,11 @@
@@ -25,8 +25,8 @@ index 1a851da93..915d1c739 100644
  #include "libANGLE/renderer/d3d/d3d11/Renderer11.h"
  
  #include <EGL/eglext.h>
-@@ -75,6 +80,8 @@
- #    include "libANGLE/renderer/d3d/d3d9/DebugAnnotator9.h"
+@@ -68,6 +73,8 @@
+ #    include "libANGLE/renderer/d3d/d3d11/win32/NativeWindow11Win32.h"
  #endif
  
 +# pragma pop_macro("_WIN32_WINNT")
@@ -35,7 +35,7 @@ index 1a851da93..915d1c739 100644
  // HWNDs or the Windows 7 Platform Update (KB2670838) is expected to be installed.
  #ifndef ANGLE_SKIP_DXGI_1_2_CHECK
 diff --git a/src/libANGLE/renderer/d3d/d3d11/converged/CompositorNativeWindow11.h b/src/libANGLE/renderer/d3d/d3d11/converged/CompositorNativeWindow11.h
-index 207ab0e2f..f221d866b 100644
+index aebdba1a5..6f11cc2ef 100644
 --- a/src/libANGLE/renderer/d3d/d3d11/converged/CompositorNativeWindow11.h
 +++ b/src/libANGLE/renderer/d3d/d3d11/converged/CompositorNativeWindow11.h
 @@ -9,15 +9,21 @@
@@ -50,12 +50,12 @@ index 207ab0e2f..f221d866b 100644
 +# endif
  #include "libANGLE/renderer/d3d/d3d11/NativeWindow11.h"
  
- #include <DispatcherQueue.h>
- #include <VersionHelpers.h>
+ #include <dispatcherqueue.h>
+ #include <versionhelpers.h>
 +#include <WinUser.h>
- #include <Windows.ui.composition.interop.h>
  #include <windows.foundation.metadata.h>
  #include <windows.ui.composition.h>
+ #include <windows.ui.composition.interop.h>
  #include <wrl.h>
 +# pragma pop_macro("_WIN32_WINNT")
  
@@ -87,5 +87,5 @@ index 146c492dd..4a4605315 100644
  namespace rx
  {
 -- 
-2.19.2
+2.20.1 (Apple Git-117)
 
