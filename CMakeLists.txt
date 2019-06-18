@@ -200,7 +200,11 @@ if(WIN32)
         endif()
         target_link_libraries(angle_renderer_win32 INTERFACE user32 gdi32)
         add_library(angle::renderer::win32 ALIAS angle_renderer_win32)
-        set_property(SOURCE src/libANGLE/renderer/d3d/HLSLCompiler.cpp APPEND PROPERTY COMPILE_FLAGS "-DANGLE_PRELOADED_D3DCOMPILER_MODULE_NAMES='{\"d3dcompiler_47.dll\",\"d3dcompiler_46.dll\",\"d3dcompiler_43.dll\"}'")
+        if(CMAKE_HOST_WIN32)
+            set_property(SOURCE src/libANGLE/renderer/d3d/HLSLCompiler.cpp APPEND PROPERTY COMPILE_FLAGS "-DANGLE_PRELOADED_D3DCOMPILER_MODULE_NAMES={\\\"d3dcompiler_47.dll\\\",\\\"d3dcompiler_46.dll\\\",\\\"d3dcompiler_43.dll\\\"}")
+        else() # do not let bash expend {xx,oo}
+            set_property(SOURCE src/libANGLE/renderer/d3d/HLSLCompiler.cpp APPEND PROPERTY COMPILE_FLAGS "-DANGLE_PRELOADED_D3DCOMPILER_MODULE_NAMES='{\"d3dcompiler_47.dll\",\"d3dcompiler_46.dll\",\"d3dcompiler_43.dll\"}'")
+        endif()
     endif()
 
     ## D3D11 Base renderer
