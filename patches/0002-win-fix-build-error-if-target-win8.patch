@@ -1,7 +1,7 @@
-From a66bcf83dab5ba674674596c881a733782a17732 Mon Sep 17 00:00:00 2001
+From d267b2755bcb09611d0daf67384218841408bf69 Mon Sep 17 00:00:00 2001
 From: wang-bin <wbsecg1@gmail.com>
 Date: Sat, 22 Dec 2018 10:27:26 +0800
-Subject: [PATCH 2/3] win: fix build error if target < win8
+Subject: [PATCH 2/4] win: fix build error if target < win8
 
 ---
  src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp            | 7 +++++++
@@ -10,7 +10,7 @@ Subject: [PATCH 2/3] win: fix build error if target < win8
  3 files changed, 20 insertions(+), 2 deletions(-)
 
 diff --git a/src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp b/src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp
-index 33dfa6b03..849887db2 100644
+index c48dc3726..51484ea17 100644
 --- a/src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp
 +++ b/src/libANGLE/renderer/d3d/d3d11/Renderer11.cpp
 @@ -6,6 +6,11 @@
@@ -87,5 +87,5 @@ index 146c492dd..4a4605315 100644
  namespace rx
  {
 -- 
-2.20.1 (Apple Git-117)
+2.21.0
 

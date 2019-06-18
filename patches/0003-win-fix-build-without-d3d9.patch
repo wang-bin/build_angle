@@ -1,17 +1,17 @@
-From 439675fd38eba7174cabf8abb623bd3f1c9edceb Mon Sep 17 00:00:00 2001
+From d6d66c3d2bfb704bd8d6a1c8df16e55fe4c6f9ed Mon Sep 17 00:00:00 2001
 From: wang-bin <wbsecg1@gmail.com>
 Date: Sun, 23 Dec 2018 20:09:15 +0800
-Subject: [PATCH 3/3] win: fix build without d3d9
+Subject: [PATCH 3/4] win: fix build without d3d9
 
 ---
  src/libANGLE/renderer/d3d/RendererD3D.cpp | 2 ++
  1 file changed, 2 insertions(+)
 
 diff --git a/src/libANGLE/renderer/d3d/RendererD3D.cpp b/src/libANGLE/renderer/d3d/RendererD3D.cpp
-index dc3f063bd..35b4b0d96 100644
+index fa464763c..346e6663b 100644
 --- a/src/libANGLE/renderer/d3d/RendererD3D.cpp
 +++ b/src/libANGLE/renderer/d3d/RendererD3D.cpp
-@@ -229,7 +229,9 @@ GLenum DefaultGLErrorCode(HRESULT hr)
+@@ -240,7 +240,9 @@ GLenum DefaultGLErrorCode(HRESULT hr)
  {
      switch (hr)
      {
@@ -22,5 +22,5 @@ index dc3f063bd..35b4b0d96 100644
              return GL_OUT_OF_MEMORY;
          default:
 -- 
-2.20.1 (Apple Git-117)
+2.21.0
 
