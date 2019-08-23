@@ -1,7 +1,7 @@
-From 991ae35112d5ac01b7378ee411201bbcd22148ae Mon Sep 17 00:00:00 2001
+From 874b1dc3d30761a82b7dda82e3e2936ef9ade721 Mon Sep 17 00:00:00 2001
 From: wang-bin <wbsecg1@gmail.com>
 Date: Fri, 4 May 2018 12:00:44 +0800
-Subject: [PATCH 1/4] check d3d11 texture bind flags for eglstream
+Subject: [PATCH 1/5] check d3d11 texture bind flags for eglstream
 
 ---
  extensions/EGL_ANGLE_stream_producer_d3d_texture.txt         | 4 +++-
@@ -31,7 +31,7 @@ index 67581b418..3cc3faf1e 100644
  
          - EGL_BAD_ATTRIBUTE is generated if an attribute other than
 diff --git a/src/libANGLE/renderer/d3d/d3d11/StreamProducerD3DTexture.cpp b/src/libANGLE/renderer/d3d/d3d11/StreamProducerD3DTexture.cpp
-index 24fa9ff2c..561f009a0 100644
+index 998ccf0be..a4a1d238b 100644
 --- a/src/libANGLE/renderer/d3d/d3d11/StreamProducerD3DTexture.cpp
 +++ b/src/libANGLE/renderer/d3d/d3d11/StreamProducerD3DTexture.cpp
 @@ -33,6 +33,9 @@ egl::Error GetGLDescFromTex(ID3D11Texture2D *const tex,

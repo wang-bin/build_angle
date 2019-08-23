@@ -1,14 +1,14 @@
-From d6d66c3d2bfb704bd8d6a1c8df16e55fe4c6f9ed Mon Sep 17 00:00:00 2001
+From 094934a56432b3164d989f925802364924785fd1 Mon Sep 17 00:00:00 2001
 From: wang-bin <wbsecg1@gmail.com>
 Date: Sun, 23 Dec 2018 20:09:15 +0800
-Subject: [PATCH 3/4] win: fix build without d3d9
+Subject: [PATCH 3/5] win: fix build without d3d9
 
 ---
  src/libANGLE/renderer/d3d/RendererD3D.cpp | 2 ++
  1 file changed, 2 insertions(+)
 
 diff --git a/src/libANGLE/renderer/d3d/RendererD3D.cpp b/src/libANGLE/renderer/d3d/RendererD3D.cpp
-index fa464763c..346e6663b 100644
+index ba719826b..00c57f0db 100644
 --- a/src/libANGLE/renderer/d3d/RendererD3D.cpp
 +++ b/src/libANGLE/renderer/d3d/RendererD3D.cpp
 @@ -240,7 +240,9 @@ GLenum DefaultGLErrorCode(HRESULT hr)

@@ -41,8 +41,9 @@ include_directories(include src ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 ##########
 # angle::common
+# android_util.h/cpp is required and not using android apis
 if(WIN32)
-    set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_mac|_posix|android_")
+    set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_mac|_posix")
 elseif(LINUX)
     set(ANGLE_COMMON_PLATFORM_FILTER "_win|_mac")
 elseif(APPLE)
@@ -299,6 +300,7 @@ add_library(angle::libANGLE ALIAS libANGLE)
 ##########
 # libGLESv2
 file(GLOB LIBGLESV2_SOURCES "src/libGLESv2/*.h" "src/libGLESv2/*.cpp" "src/libGLESv2/libGLESv2_autogen.def")
+list(FILTER LIBGLESV2_SOURCES EXCLUDE REGEX "proc_table_autogen|proc_table_gles_autogen") # unused, and duplicated symbols
 add_library(libGLESv2 SHARED ${LIBGLESV2_SOURCES})
 target_link_libraries(libGLESv2 PRIVATE angle::common angle::libANGLE)
 target_compile_definitions(libGLESv2
