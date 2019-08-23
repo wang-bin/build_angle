@@ -26,6 +26,8 @@ if(MSVC)
     add_compile_options(-guard:cf)
     if(NOT CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
         add_compile_options(-d2guard4 -Wv:18)
+    elseif(WINDOWS_DESKTOP)
+      add_compile_options(-D_WIN32_WINNT=0x0600) #-GL
     endif()
     link_libraries(-opt:ref)
     if(CMAKE_CXX_SIMULATE_ID MATCHES MSVC)
@@ -40,7 +42,7 @@ else()
     add_compile_options(-fno-rtti -fno-exceptions -fPIC)
 endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang" AND NOT MSVC)
     add_compile_options(-flto=thin) # lld-link: error: lto.tmp: undefined symbol: ldexpf
 endif()
 if(APPLE)

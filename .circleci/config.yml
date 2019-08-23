@@ -7,6 +7,7 @@ custom-steps:
       command: |
         ls -lh build/${TARGET_OS}*
         [ -f build/${TARGET_OS}/cmake_install.cmake ] && cmake -P build/${TARGET_OS}/cmake_install.cmake
+        [ -f build/${TARGET_OS}-arm64/cmake_install.cmake ] && cmake -P build/${TARGET_OS}-arm64/cmake_install.cmake
         [ -f build/${TARGET_OS}-x86/cmake_install.cmake ] && cmake -P build/${TARGET_OS}-x86/cmake_install.cmake
         [ -f build/${TARGET_OS}-x64/cmake_install.cmake ] && cmake -P build/${TARGET_OS}-x64/cmake_install.cmake
         tar Jcvf /tmp/angle-${TARGET_OS}.tar.xz angle-*
@@ -50,6 +51,15 @@ jobs:
             find ../patches/ -name "*.patch" -exec sh -c 'patch -p1 < $0' {} \;
       - *install-dev-tools
       - *get-winsysroot
+      - run:
+          name: Configure for win arm64
+          command: |
+            export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
+            cmake -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-arm64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-arm64 -Hangle
+      - run:
+          name: Build for win arm64
+          command: |
+            cmake --build build/${TARGET_OS}-arm64
       - run:
           name: Configure for win32
           command: |
