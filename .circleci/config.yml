@@ -19,8 +19,9 @@ custom-steps:
         apt update
         apt install -y software-properties-common # for add-apt-repository, ubuntu-tooolchain-r-test is required by trusty
         apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main"
+        apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main"
         apt-add-repository "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-8 main"
-        apt install -y cmake ninja-build p7zip-full clang-${LLVM_VER:-8} lld-${LLVM_VER:-8} clang-tools-${LLVM_VER:-8} # clang-tools: clang-cl
+        apt install -y cmake ninja-build p7zip-full clang${LLVM_VER} lld${LLVM_VER} clang-tools${LLVM_VER} # clang-tools: clang-cl
   - &get-winsysroot
     run:
       name: Install windows sdk and vcrt
@@ -55,29 +56,41 @@ jobs:
           name: Configure for win arm64
           command: |
             export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
-            cmake -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-arm64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-arm64 -Hangle
+            if [ -z "${ARCH/*arm64*/}" ]; then
+              cmake -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-arm64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-arm64 -Hangle
+            fi
       - run:
           name: Build for win arm64
           command: |
-            cmake --build build/${TARGET_OS}-arm64
+            if [ -z "${ARCH/*arm64*/}" ]; then
+              cmake --build build/${TARGET_OS}-arm64
+            fi
       - run:
           name: Configure for win32
           command: |
             export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
-            cmake -DCMAKE_SYSTEM_PROCESSOR=x86 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x86 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x86 -Hangle
+            if [ -z "${ARCH/*x86*/}" ]; then
+              cmake -DCMAKE_SYSTEM_PROCESSOR=x86 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x86 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x86 -Hangle
+            fi
       - run:
           name: Build for win32
           command: |
-            cmake --build build/${TARGET_OS}-x86
+            if [ -z "${ARCH/*x86*/}" ]; then
+              cmake --build build/${TARGET_OS}-x86
+            fi
       - run:
           name: Configure for win64
           command: |
             export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
-            cmake -DCMAKE_SYSTEM_PROCESSOR=x64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x64 -Hangle
+            if [ -z "${ARCH/*x64*/}" ]; then
+              cmake -DCMAKE_SYSTEM_PROCESSOR=x64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x64 -Hangle
+            fi
       - run:
           name: Build for win64
           command: |
-            cmake --build build/${TARGET_OS}-x64
+            if [ -z "${ARCH/*x64*/}" ]; then
+              cmake --build build/${TARGET_OS}-x64
+            fi
       - *make-sdk
       - store_artifacts:
           path: /tmp/angle-windows-desktop.tar.xz
