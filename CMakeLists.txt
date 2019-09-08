@@ -4,7 +4,7 @@ include(config.cmake)
 
 option(USE_LOADER "build with EGL/GLESv2 loader" ON)
 option(USE_VULKAN "build with vulkan support" ON)
-if(WINDOWS_DESKTOP)
+if(WINDOWS_DESKTOP AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES arm)
   option(USE_D3D9 "build with d3d9 support" ON)
   option(USE_GL "build with native opengl/es support via wgl" ON)
 endif()

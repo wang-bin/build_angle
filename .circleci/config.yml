@@ -63,7 +63,7 @@ jobs:
           name: Build for win arm64
           command: |
             if [ -z "${ARCH/*arm64*/}" ]; then
-              cmake --build build/${TARGET_OS}-arm64
+              cmake --build build/${TARGET_OS}-arm64 ${BUILD_OPT}
             fi
       - run:
           name: Configure for win32
@@ -76,7 +76,7 @@ jobs:
           name: Build for win32
           command: |
             if [ -z "${ARCH/*x86*/}" ]; then
-              cmake --build build/${TARGET_OS}-x86
+              cmake --build build/${TARGET_OS}-x86 ${BUILD_OPT}
             fi
       - run:
           name: Configure for win64
@@ -89,7 +89,7 @@ jobs:
           name: Build for win64
           command: |
             if [ -z "${ARCH/*x64*/}" ]; then
-              cmake --build build/${TARGET_OS}-x64
+              cmake --build build/${TARGET_OS}-x64 ${BUILD_OPT}
             fi
       - *make-sdk
       - store_artifacts:
