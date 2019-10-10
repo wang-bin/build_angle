@@ -57,7 +57,7 @@ jobs:
           command: |
             export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
             if [ -z "${ARCH/*arm64*/}" ]; then
-              cmake -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-arm64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-arm64 -Hangle
+              cmake -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-arm64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-arm64 -Hangle ${CONFIG_OPT}
             fi
       - run:
           name: Build for win arm64
@@ -70,7 +70,7 @@ jobs:
           command: |
             export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
             if [ -z "${ARCH/*x86*/}" ]; then
-              cmake -DCMAKE_SYSTEM_PROCESSOR=x86 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x86 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x86 -Hangle
+              cmake -DCMAKE_SYSTEM_PROCESSOR=x86 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x86 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x86 -Hangle ${CONFIG_OPT}
             fi
       - run:
           name: Build for win32
@@ -83,7 +83,7 @@ jobs:
           command: |
             export WindowsSDKVersion=$(cat ${WindowsSdkDir}/.version)
             if [ -z "${ARCH/*x64*/}" ]; then
-              cmake -DCMAKE_SYSTEM_PROCESSOR=x64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x64 -Hangle
+              cmake -DCMAKE_SYSTEM_PROCESSOR=x64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake-tools/windows.clang.cmake -GNinja -H$PWD -B$PWD/build/${TARGET_OS}-x64 -DCMAKE_BUILD_TYPE=${CONFIG:-MinSizeRel} -DCMAKE_INSTALL_PREFIX=$PWD/angle-x64 -Hangle ${CONFIG_OPT}
             fi
       - run:
           name: Build for win64
