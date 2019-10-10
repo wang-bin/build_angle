@@ -1,28 +1,27 @@
-From 7f8c67b383892d0b72ddc91295a7867b5da4b81d Mon Sep 17 00:00:00 2001
+From e45e1e774c9e3ed9c3051447b8e7f14d79dfbc7e Mon Sep 17 00:00:00 2001
 From: wang-bin <wbsecg1@gmail.com>
 Date: Tue, 18 Jun 2019 10:39:20 +0800
-Subject: [PATCH 4/5] fix unrecognized SAL for clang-cl
+Subject: [PATCH 3/3] fix unrecognized SAL for clang-cl
 
 FAR in combaseapi.h
 ---
- src/gpu_info_util/SystemInfo_win.cpp | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ src/gpu_info_util/SystemInfo_win.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/src/gpu_info_util/SystemInfo_win.cpp b/src/gpu_info_util/SystemInfo_win.cpp
-index 878f0f5df..78b5bd276 100644
+index f4bb137f2..24e5fc051 100644
 --- a/src/gpu_info_util/SystemInfo_win.cpp
 +++ b/src/gpu_info_util/SystemInfo_win.cpp
-@@ -13,7 +13,9 @@
+@@ -13,6 +13,9 @@
  
  // Windows.h needs to be included first
  #include <windows.h>
--
 +#ifdef __clang__
 +#define far // fix CoGetMalloc build error
 +#endif
- #include <d3d10.h>
+ 
  #include <dxgi.h>
  
 -- 
-2.21.0
+2.21.0 (Apple Git-122)
 

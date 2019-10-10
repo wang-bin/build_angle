@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(angle CXX C)
 include(config.cmake)
 
+option(USE_FRAME_CAPTURE "build with frame capture support" OFF)
 option(USE_LOADER "build with EGL/GLESv2 loader" ON)
 option(USE_VULKAN "build with vulkan support" ON)
 if(WINDOWS_DESKTOP AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES arm)
@@ -42,8 +43,10 @@ include_directories(include src ${CMAKE_CURRENT_BINARY_DIR}/include)
 ##########
 # angle::common
 # android_util.h/cpp is required and not using android apis
-if(WIN32)
-    set(ANGLE_COMMON_PLATFORM_FILTER "_linux|_mac|_posix")
+if(WINDOWS_DESKTOP)
+    set(ANGLE_COMMON_PLATFORM_FILTER "_winuwp|_linux|_mac|_posix")
+elseif(WINDOWS_STORE)
+    set(ANGLE_COMMON_PLATFORM_FILTER "_win|_linux|_mac|_posix")
 elseif(LINUX)
     set(ANGLE_COMMON_PLATFORM_FILTER "_win|_mac")
 elseif(APPLE)
@@ -217,7 +220,7 @@ if(WIN32)
     target_compile_definitions(angle_renderer_d3d INTERFACE
         -DANGLE_ENABLE_D3D11
     )
-    target_link_libraries(angle_renderer_d3d INTERFACE d3d11 dxguid) #${D3D11_LIB} ${DXGUID_LIB})
+    target_link_libraries(angle_renderer_d3d INTERFACE d3d11 dxgi dxguid) #${D3D11_LIB} ${DXGUID_LIB})
     add_library(angle::renderer::d3d ALIAS angle_renderer_d3d)
 endif()
 
@@ -249,6 +252,11 @@ file(GLOB LIBANGLE_SOURCES
     ${LIBANGLE_SOURCES_PLATFORM}
 )
 list(FILTER LIBANGLE_SOURCES EXCLUDE REGEX "_unittest")
+if(USE_FRAME_CAPTURE)
+    list(FILTER LIBANGLE_SOURCES EXCLUDE REGEX "FrameCapture_mock.cpp")
+else()
+    list(FILTER LIBANGLE_SOURCES EXCLUDE REGEX "FrameCapture.cpp")
+endif()
 
 if(LINUX OR APPLE)
     set(LIBANGLE_RENDERER_PLATFORM
@@ -294,6 +302,7 @@ target_compile_definitions(libANGLE
     PUBLIC 
         -DLIBANGLE_IMPLEMENTATION 
         ${LIBANGLE_RENDERER_COMPILEDEF}
+        -DANGLE_CAPTURE_ENABLED=$<BOOL:${USE_FRAME_CAPTURE}>
 )
 add_library(angle::libANGLE ALIAS libANGLE)
 

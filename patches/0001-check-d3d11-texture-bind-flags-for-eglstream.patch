@@ -1,7 +1,7 @@
-From 874b1dc3d30761a82b7dda82e3e2936ef9ade721 Mon Sep 17 00:00:00 2001
+From 0386de531b8b2540d20dbe4dcadcc69534ee5d61 Mon Sep 17 00:00:00 2001
 From: wang-bin <wbsecg1@gmail.com>
 Date: Fri, 4 May 2018 12:00:44 +0800
-Subject: [PATCH 1/5] check d3d11 texture bind flags for eglstream
+Subject: [PATCH 1/3] check d3d11 texture bind flags for eglstream
 
 ---
  extensions/EGL_ANGLE_stream_producer_d3d_texture.txt         | 4 +++-
@@ -45,5 +45,5 @@ index 998ccf0be..a4a1d238b 100644
      out->height    = desc.Height;
      out->mipLevels = 0;
 -- 
-2.21.0
+2.21.0 (Apple Git-122)
 
