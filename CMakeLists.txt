@@ -4,7 +4,8 @@ include(config.cmake)
 
 option(USE_FRAME_CAPTURE "build with frame capture support" OFF)
 option(USE_LOADER "build with EGL/GLESv2 loader" ON)
-option(USE_VULKAN "build with vulkan support" ON)
+option(USE_VULKAN "build with vulkan support" OFF)
+option(USE_METAL "build with metal support" OFF)
 if(WINDOWS_DESKTOP AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES arm)
   option(USE_D3D9 "build with d3d9 support" ON)
   option(USE_GL "build with native opengl/es support via wgl" ON)
@@ -261,7 +262,9 @@ if(USE_FRAME_CAPTURE)
 else()
     list(FILTER LIBANGLE_SOURCES EXCLUDE REGEX "FrameCapture.cpp")
 endif()
-
+if(NOT USE_VULKAN AND NOT USE_METAL)
+    list(FILTER LIBANGLE_SOURCES EXCLUDE REGEX "glslang_wrapper_utils.cpp") # need glslang source
+endif()
 if(LINUX OR APPLE)
     set(LIBANGLE_RENDERER_PLATFORM
         angle::renderer::opengl
