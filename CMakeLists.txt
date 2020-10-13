@@ -117,7 +117,19 @@ target_compile_definitions(angle_translator PRIVATE
 if(WIN32)
     target_compile_definitions(angle_translator PRIVATE -DANGLE_ENABLE_HLSL)
 endif()
-target_link_libraries(angle_translator PRIVATE angle::common)
+
+find_package(GTest)
+if(NOT GTest_FOUND)
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/release-1.10.0.tar.gz
+    URL_HASH SHA1=9c89be7df9c5e8cb0bc20b3c4b39bf7e82686770
+  )
+  FetchContent_MakeAvailable(googletest)
+endif()
+
+target_link_libraries(angle_translator PRIVATE angle::common gtest)
 add_library(angle::translator ALIAS angle_translator)
 
 ##########
